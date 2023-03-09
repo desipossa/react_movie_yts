@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { Link, Route, Routes } from "react-router-dom";
 import styled from "styled-components";
 import CommonStyle from './style/Grobal';
 
@@ -80,12 +81,31 @@ color: #fff;
 padding: 7px 20px;
 margin: 0 0 0 10px;
 `
+const ListBtnWrapper = styled.div`
+text-align: center;
+`
+
+const ListBtn = styled.button`
+border: none;
+padding: 3px 10px;
+margin: 0 1px;
+background: #FFA556;
+border-radius: 2px;
+
+`
+
+
 // 1. 영화 만히 가져오기... list 버튼 만들기...
 // 2. 영화 클릭하면 자세한 정보 보여주기...
 // 3. 영화 슬라이드 만들기
 // 4. 영화 검색기능 만들기
 // 5. 장르 별로 보여주기....
+// 6. 로딩중 만들기...
 
+
+const DetailMovie = () => {
+    return <>DetailMovie</>
+}
 
 const Movie = () => {
     //영화 데이타를 가져오기 (데이터는 시간이 걸리는 일이므로... 비동기식으로 처리한다.)
@@ -94,9 +114,14 @@ const Movie = () => {
     const [movie, setMovie] = useState([]);
     const [movieList, setMovieList] = useState({});
     const [pageNum, setPageNum] = useState(0);
+    const [list, setList] = useState(0);
+
+    const limit = 50; // 50이하임..
+    const pageLimit = 20;
+    const listNum = Array.from({ length: parseInt(movieList.movie_count / limit) });
 
     const getMovie = async () => {
-        const r = await axios.get(`https://yts.mx/api/v2/list_movies.json?limit=48&page=${pageNum}`);
+        const r = await axios.get(`https://yts.mx/api/v2/list_movies.json?${limit}=48&page=${pageNum}`);
         setMovieList(r.data.data);
         setMovie(r.data.data.movies);
     }
@@ -105,7 +130,7 @@ const Movie = () => {
         getMovie();
     }, [pageNum]);
 
-    const listNum = Array.from({ length: 1000 });
+
 
     console.log(movie, movieList)
 
@@ -119,11 +144,31 @@ const Movie = () => {
                     <Input type="text" /><Button>SEARCH</Button>
                 </form>
             </Header>
-            {
-                listNum.map((_, idx) => {
-                    return <button onClick={() => setPageNum(idx + 1)}>{idx + 1}</button>
-                })
-            }
+
+            <Routes>
+                <Route path="/" element={null} />
+                <Route path="/detail/:id" element={<DetailMovie />} />
+            </Routes>
+
+
+
+            <ListBtnWrapper>
+                {
+                    list > 1 &&
+                    <ListBtn onClick={() => setList(list - pageLimit)}>PREV</ListBtn>
+                }
+
+                {
+                    listNum.map((_, idx) => {
+                        return <ListBtn onClick={() => setPageNum(idx + 1)}>{idx + 1}</ListBtn>
+                    }).slice(list, list + pageLimit)
+                }
+                {
+                    list < parseInt(movieList.movie_count / limit) - pageLimit &&
+                    <ListBtn onClick={() => setList(list + pageLimit)}>NEXT</ListBtn>
+                }
+            </ListBtnWrapper>
+
             <MovieListWrapper>
                 <Inner>
                     <GridLayout>
@@ -131,18 +176,20 @@ const Movie = () => {
                             movie.map((it, idx) => {
                                 return (
                                     <GridItm key={it.id}>
-                                        <Img src={it.large_cover_image}
-                                            alt={it.title}
-                                            onError={e => e.target.src = `${process.env.PUBLIC_URL}/cover.jpg`}
-                                        />
-                                        <Title>{it.title_long}</Title>
-                                        {
-                                            it.description_full.length > 10 &&
-                                            <Desc>
-                                                {it.description_full.substr(0, 200)}
-                                                {it.description_full.length > 200 ? '...' : ''}
-                                            </Desc>
-                                        }
+                                        <Link to={`/detail/${it.id}`}>
+                                            <Img src={it.large_cover_image}
+                                                alt={it.title}
+                                                onError={e => e.target.src = `${process.env.PUBLIC_URL}/cover.jpg`}
+                                            />
+                                            <Title>{it.title_long}</Title>
+                                            {
+                                                it.description_full.length > 10 &&
+                                                <Desc>
+                                                    {it.description_full.substr(0, 200)}
+                                                    {it.description_full.length > 200 ? '...' : ''}
+                                                </Desc>
+                                            }
+                                        </Link>
 
                                     </GridItm>
                                 )
