@@ -121,16 +121,20 @@ transform: translate(-50%,-50%);
 const DetailMovie = ({ movie, on, setOn }) => {
     const { id } = useParams();
     const detailMovie = movie.find(it => it.id == id);
-
-    const wheelStop = e => {
-        e.preventDefault();
+    const cover = useRef();
+    //https://stackoverflow.com/questions/65455975/using-useref-addeventlistener 참조
+    // Useref는 rerender를 트리거하지 않고 useEffect 이전에 바인딩된 ref 객체입니다. 요소 없이 el.current를 사용하십시오.
+    const scrollHandler = e => {
+        e.preventDefault()
     }
-
-    const bg = useRef(null);
-
     useEffect(() => {
-        bg.current.addEventListener('wheel', wheelStop)
-    }, [id])
+        if (cover.current) {
+            cover.current.addEventListener('wheel', scrollHandler);
+            // return () => {
+            //     cover.current.removeEventListener("scroll", scrollHandler);
+            // };
+        }
+    }, [cover.current])
 
     return (
         <>
@@ -138,8 +142,8 @@ const DetailMovie = ({ movie, on, setOn }) => {
                 detailMovie && on &&
                 <MoviePopWapper
                     onClick={() => setOn(false)}
-                    // onWheel={wheelStop}
-                    ref={bg}
+                    //onScroll={wheelStop}
+                    ref={cover}
                 >
                     <MoviePop>
                         <img src={detailMovie.large_cover_image} alt="" />
@@ -206,7 +210,7 @@ const Movie = () => {
 
                 {
                     listNum.map((_, idx) => {
-                        return <ListBtn onClick={() => setPageNum(idx + 1)}>{idx + 1}</ListBtn>
+                        return <ListBtn onClick={() => setPageNum(idx + 1)} key={idx}>{idx + 1}</ListBtn>
                     }).slice(list, list + pageLimit)
                 }
                 {
