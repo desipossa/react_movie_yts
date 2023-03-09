@@ -1,6 +1,6 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
-import { Link, Route, Routes } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, Route, Routes, useParams } from "react-router-dom";
 import styled from "styled-components";
 import CommonStyle from './style/Grobal';
 
@@ -94,6 +94,21 @@ border-radius: 2px;
 
 `
 
+const MoviePopWapper = styled.div`
+position: fixed;
+inset:  0 0 0 0;
+z-index: 999;
+background: rgba(0,0,0,0.5);
+`
+
+const MoviePop = styled.div`
+position: absolute;
+inset: 50% auto auto 50%;
+transform: translate(-50%,-50%);
+`
+
+
+
 
 // 1. 영화 만히 가져오기... list 버튼 만들기...
 // 2. 영화 클릭하면 자세한 정보 보여주기...
@@ -103,8 +118,36 @@ border-radius: 2px;
 // 6. 로딩중 만들기...
 
 
-const DetailMovie = () => {
-    return <>DetailMovie</>
+const DetailMovie = ({ movie, on, setOn }) => {
+    const { id } = useParams();
+    const detailMovie = movie.find(it => it.id == id);
+
+    const wheelStop = e => {
+        e.preventDefault();
+    }
+
+    const bg = useRef(null);
+
+    useEffect(() => {
+        bg.current.addEventListener('wheel', wheelStop)
+    }, [id])
+
+    return (
+        <>
+            {
+                detailMovie && on &&
+                <MoviePopWapper
+                    onClick={() => setOn(false)}
+                    // onWheel={wheelStop}
+                    ref={bg}
+                >
+                    <MoviePop>
+                        <img src={detailMovie.large_cover_image} alt="" />
+                    </MoviePop>
+                </MoviePopWapper>
+            }
+        </>
+    )
 }
 
 const Movie = () => {
@@ -115,6 +158,7 @@ const Movie = () => {
     const [movieList, setMovieList] = useState({});
     const [pageNum, setPageNum] = useState(0);
     const [list, setList] = useState(0);
+    const [on, setOn] = useState(true);
 
     const limit = 50; // 50이하임..
     const pageLimit = 20;
@@ -147,7 +191,9 @@ const Movie = () => {
 
             <Routes>
                 <Route path="/" element={null} />
-                <Route path="/detail/:id" element={<DetailMovie />} />
+                <Route path="/detail/:id" element={
+                    <DetailMovie movie={movie} on={on} setOn={setOn} />
+                } />
             </Routes>
 
 
@@ -175,7 +221,7 @@ const Movie = () => {
                         {
                             movie.map((it, idx) => {
                                 return (
-                                    <GridItm key={it.id}>
+                                    <GridItm key={it.id} onClick={() => setOn(true)}>
                                         <Link to={`/detail/${it.id}`}>
                                             <Img src={it.large_cover_image}
                                                 alt={it.title}
