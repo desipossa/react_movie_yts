@@ -13,18 +13,23 @@ import 'slick-carousel/slick/slick.css';
 
 const Wapper = styled.div`
 background: #333333;
+overflow: hidden;
+padding: 15px;
 `
 const MovieListWrapper = styled.section`
 padding: 100px 0;
 `
 const Inner = styled.div`
-width: 1600px;
+max-width: 1600px;
 margin: 0 auto;
 `
 const GridLayout = styled.ul`
 display: grid;
-grid-template-columns: repeat(6, 1fr);
+/* mediaQuey 없이 반응형 만들기 1 */
+grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 gap: 10px;
+
+
 
 `
 
@@ -164,7 +169,7 @@ background: tomato;
 const MovieSlideWrapper = styled.div`
 position: relative;
 color: #fff;
-margin: 0 0 30px 0;
+margin: 0 -100px 30px -100px;
 `
 
 const MovieSlideLeftArrow = styled.span`
@@ -363,6 +368,7 @@ const Movie = () => {
 
     const MainSlideOption = {
         arrows: false,
+        autoplay: true,
         slidesToShow: 7,
     }
 
