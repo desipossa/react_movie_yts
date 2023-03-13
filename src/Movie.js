@@ -13,8 +13,6 @@ import 'slick-carousel/slick/slick.css';
 
 const Wapper = styled.div`
 background: #333333;
-overflow: hidden;
-padding: 15px;
 `
 const MovieListWrapper = styled.section`
 padding: 100px 0;
@@ -26,7 +24,8 @@ margin: 0 auto;
 const GridLayout = styled.ul`
 display: grid;
 /* mediaQuey 없이 반응형 만들기 1 */
-grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+/* grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); */
+grid-template-columns: repeat(6,1fr);
 gap: 10px;
 
 
@@ -147,8 +146,6 @@ const MoviePopDescYear = styled.p`
 margin: auto 0 10px 0;
 font-size: 14px;
 font-weight: 300;
-
-
 `
 const MoviePopDescGenres = styled.ul`
 font-size: 14px;
@@ -169,7 +166,7 @@ background: tomato;
 const MovieSlideWrapper = styled.div`
 position: relative;
 color: #fff;
-margin: 0 -100px 30px -100px;
+margin: 0 0 30px 0;
 `
 
 const MovieSlideLeftArrow = styled.span`
@@ -201,6 +198,42 @@ justify-content: center;
 color: #ddd;
 font-size: 13px;
 font-weight: 300;
+`
+
+const GenreMovieWrapper = styled.section`
+padding: 100px 0;
+color: #fff;
+`
+
+const GenreMovieTitle = styled.h2`
+font-size: 30px;
+font-weight: 700;
+width: 1600px;
+margin: 0 auto;
+`
+
+const Hr = styled.hr`
+width: 1600px;
+margin: 20px auto;
+`
+
+const Load = styled.div`
+position: fixed;
+inset: 0 0 0 0;
+background: #333;
+color: rgba(255,255,255,0.5);
+
+font-size: 150px;
+
+display: flex;
+justify-content: center;
+align-items: center;
+`
+
+const Footer = styled.footer`
+padding: 100px 0;
+text-align: center;
+color: #fff;
 `
 
 // 1. 영화 만히 가져오기... list 버튼 만들기...
@@ -316,40 +349,44 @@ const SearchMovie = ({ search, on, setOn }) => {
 const GenreMovie = ({ genre }) => {
     const [genreList, setGenreList] = useState([]);
     const genreMovie = async () => {
-        const r = await axios.get(`https://yts.mx/api/v2/list_movies.json?genre=${genre}`);
+        const r = await axios.get(`https://yts.mx/api/v2/list_movies.json?genre=${genre}&limit=12`);
         setGenreList(r.data.data.movies);
     }
     useEffect(() => {
         genreMovie()
     }, [])
     return (
-        <Inner>
-            <GridLayout>
-                {
-                    genreList.map((it, idx) => {
-                        return (
-                            <GridItm key={it.id}>
-                                <Link to={`/detail/${it.id}`}>
-                                    <Img src={it.large_cover_image}
-                                        alt={it.title}
-                                        onError={e => e.target.src = `${process.env.PUBLIC_URL}/cover.jpg`}
-                                    />
-                                    <Title>{it.title_long}</Title>
-                                    {
-                                        it.summary.length > 10 &&
-                                        <Desc>
-                                            {it.summary.substr(0, 100)}
-                                            {it.summary.length > 100 ? '...' : ''}
-                                        </Desc>
-                                    }
-                                </Link>
+        <GenreMovieWrapper>
+            <GenreMovieTitle>{genre}</GenreMovieTitle>
+            <Hr />
+            <Inner>
+                <GridLayout>
+                    {
+                        genreList.map((it, idx) => {
+                            return (
+                                <GridItm key={it.id}>
+                                    <Link to={`/detail/${it.id}`}>
+                                        <Img src={it.large_cover_image}
+                                            alt={it.title}
+                                            onError={e => e.target.src = `${process.env.PUBLIC_URL}/cover.jpg`}
+                                        />
+                                        <Title>{it.title_long}</Title>
+                                        {
+                                            it.summary.length > 10 &&
+                                            <Desc>
+                                                {it.summary.substr(0, 100)}
+                                                {it.summary.length > 100 ? '...' : ''}
+                                            </Desc>
+                                        }
+                                    </Link>
 
-                            </GridItm>
-                        )
-                    })
-                }
-            </GridLayout>
-        </Inner>
+                                </GridItm>
+                            )
+                        })
+                    }
+                </GridLayout>
+            </Inner>
+        </GenreMovieWrapper>
     )
 }
 
@@ -365,9 +402,34 @@ const Movie = () => {
     const [search, setSearch] = useState([]);
     const [inputList, setInputList] = useState();
     const [input, setInput] = useState('');
-    const [genre, setGenre] = useState('Action');
+    const [load, setLoad] = useState(true);
+    //const [genre, setGenre] = useState(GL[0]);
 
-
+    const GL = [
+        "Action",
+        "Adventure",
+        "Animation",
+        "Biography",
+        "Comedy",
+        "Crime",
+        "Documentary",
+        "Drama",
+        "Family",
+        "Fantasy",
+        "Film Noir",
+        "History",
+        "Horror",
+        "Music",
+        "Musical",
+        "Mystery",
+        "Romance",
+        "Sci-Fi",
+        "Short Film",
+        "Sport",
+        "Thriller",
+        "War",
+        "Western"
+    ]
     const mainSlide = useRef(null);
     const inputRef = useRef(null);
 
@@ -376,9 +438,11 @@ const Movie = () => {
     const listNum = Array.from({ length: parseInt(movieList.movie_count / limit) });
 
     const getMovie = async () => {
+        setLoad(true);
         const r = await axios.get(`https://yts.mx/api/v2/list_movies.json?limit=${limit}&page=${pageNum}`);
         setMovieList(r.data.data);
         setMovie(r.data.data.movies);
+        setLoad(false);
     }
     const searchMovie = async () => {
         const r = await axios.get(`https://yts.mx/api/v2/list_movies.json?query_term=${inputList}`);
@@ -419,12 +483,16 @@ const Movie = () => {
         autoplay: true,
         slidesToShow: 7,
     }
-
+    if (load) {
+        return <Load><i className="xi-spinner-4 xi-spin"></i></Load>
+    }
     return (
         <Wapper>
             <CommonStyle />
             <Header>
-                <H1>Lee's Movie</H1>
+                <H1>
+                    <a href="/react_movie_yts/">Lee's Movie</a>
+                </H1>
                 <MainTitle>It is a site that collects my favorite movies. Enjoy it.</MainTitle>
                 <form onSubmit={searchHandler}>
                     <Input
@@ -451,7 +519,7 @@ const Movie = () => {
                     }
                 </InputResult>
             </Header>
-            <GenreMovie genre={genre} />
+
 
             {/* MovieSlide */}
             <MovieSlideWrapper>
@@ -553,6 +621,12 @@ const Movie = () => {
                 </Inner>
 
             </MovieListWrapper>
+            {
+                GL.map((it, idx) => <GenreMovie genre={it} />)
+            }
+            <Footer>
+                &copy; lee's movie
+            </Footer>
         </Wapper>
     )
 }
