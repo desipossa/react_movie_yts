@@ -313,6 +313,46 @@ const SearchMovie = ({ search, on, setOn }) => {
     )
 }
 
+const GenreMovie = ({ genre }) => {
+    const [genreList, setGenreList] = useState([]);
+    const genreMovie = async () => {
+        const r = await axios.get(`https://yts.mx/api/v2/list_movies.json?genre=${genre}`);
+        setGenreList(r.data.data.movies);
+    }
+    useEffect(() => {
+        genreMovie()
+    }, [])
+    return (
+        <Inner>
+            <GridLayout>
+                {
+                    genreList.map((it, idx) => {
+                        return (
+                            <GridItm key={it.id}>
+                                <Link to={`/detail/${it.id}`}>
+                                    <Img src={it.large_cover_image}
+                                        alt={it.title}
+                                        onError={e => e.target.src = `${process.env.PUBLIC_URL}/cover.jpg`}
+                                    />
+                                    <Title>{it.title_long}</Title>
+                                    {
+                                        it.summary.length > 10 &&
+                                        <Desc>
+                                            {it.summary.substr(0, 100)}
+                                            {it.summary.length > 100 ? '...' : ''}
+                                        </Desc>
+                                    }
+                                </Link>
+
+                            </GridItm>
+                        )
+                    })
+                }
+            </GridLayout>
+        </Inner>
+    )
+}
+
 const Movie = () => {
     //영화 데이타를 가져오기 (데이터는 시간이 걸리는 일이므로... 비동기식으로 처리한다.)
     //영화데이타를 그리기 state(리액터가 그려줄 수 있게)
@@ -325,6 +365,8 @@ const Movie = () => {
     const [search, setSearch] = useState([]);
     const [inputList, setInputList] = useState();
     const [input, setInput] = useState('');
+    const [genre, setGenre] = useState('Action');
+
 
     const mainSlide = useRef(null);
     const inputRef = useRef(null);
@@ -343,6 +385,8 @@ const Movie = () => {
         setSearch(r.data.data.movies);
     }
 
+
+
     useEffect(() => {
         getMovie();
     }, [pageNum]);
@@ -350,6 +394,10 @@ const Movie = () => {
     useEffect(() => {
         searchMovie();
     }, [inputList]);
+
+    // useEffect(() => {
+    //     genreMovie();
+    // }, [genre]);
 
 
     const searchHandler = e => {
@@ -403,6 +451,7 @@ const Movie = () => {
                     }
                 </InputResult>
             </Header>
+            <GenreMovie genre={genre} />
 
             {/* MovieSlide */}
             <MovieSlideWrapper>
